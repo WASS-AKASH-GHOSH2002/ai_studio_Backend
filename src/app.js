@@ -1,7 +1,14 @@
 // app.js
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const app = express();
+
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 const connectDB = require('./config/db');
 const RedisClient = require('./config/redis.client');
@@ -32,9 +39,18 @@ const accountRepository = new AccountRepository(AccountModel);
 const authService = new AuthService(accountRepository, userRepository);
 const authController = new AuthController(authService);
 
+// AI module
+const AiService = require('./modules/ai/ai.service');
+const AiController = require('./modules/ai/ai.controller');
+const aiRoutes = require('./modules/ai/ai.routes');
+
+const aiService = new AiService();
+const aiController = new AiController(aiService);
+
 // Routes
 app.use('/api/users', userRoutes(userController));
 app.use('/api/auth', authRoutes(authController));
+app.use('/api/ai', aiRoutes(aiController));
 
 // Error middleware
 const errorHandler = require('./middlewares/error.middleware');
